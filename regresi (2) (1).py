@@ -1,25 +1,3 @@
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import r2_score, mean_squared_error
-from sklearn.decomposition import PCA
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.linear_model import LinearRegression
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-import pandas as pd
-import numpy as np
-import math
-from sklearn.ensemble import RandomForestRegressor
-import plotly.graph_objects as go
-import plotly.express as px
-import seaborn as sns
-import matplotlib.pyplot as plt
-import streamlit as st
-
-st.set_page_config(layout='wide')
-st.title('House Price Baseline')
-
 # -*- coding: utf-8 -*-
 """Regresi.ipynb
 
@@ -29,10 +7,31 @@ Original file is located at
     https://colab.research.google.com/drive/1xGzRmv0yFtNR9EEfn0V_PB4Q0CCmki1z
 """
 
-# import shap
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+# import shap 
+import streamlit as st
+import plotly.graph_objects as go
 
+from sklearn.model_selection import train_test_split 
+from sklearn.preprocessing import StandardScaler 
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder 
 
-cleaned_data = pd.read_csv("cleaned_rumah.csv", index_col=[0])
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import make_pipeline 
+from sklearn.linear_model import LinearRegression 
+
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis 
+from sklearn.decomposition import PCA 
+
+import math
+from sklearn.metrics import r2_score, mean_squared_error 
+from sklearn.pipeline import Pipeline 
+
+cleaned_data = pd.read_csv("cleaned_rumah.csv", index_col=[0]) 
 cleaned_data.head()
 
 cleaned_data.shape
@@ -41,25 +40,24 @@ cleaned_data.info()
 
 cleaned_data.describe()
 
-cleaned_data.columns = cleaned_data.columns.str.lower().str.replace(" ", "_")
-cleaned_data.rename(columns={'harga_per_m^2': 'harga_tanah'}, inplace=True)
+cleaned_data.columns = cleaned_data.columns.str.lower().str.replace(" ", "_") 
+cleaned_data.rename(columns={'harga_per_m^2':'harga_tanah'}, inplace=True)
 
 cleaned_data['harga'] = cleaned_data['harga'].apply(lambda x: x/1000000)
 
-cleaned_data = cleaned_data.drop(["alamat", "jenis_interior"], axis=1)
-cleaned_data.head()
+cleaned_data = cleaned_data.drop(["alamat", "jenis_interior"], axis=1) 
+cleaned_data.head() 
 
-print("cek", cleaned_data["listrik"].unique())
+print("cek", cleaned_data["listrik"].unique()) 
 
-print('Jumlah missing value tiap fitur: ')
-print(cleaned_data.isnull().sum())
+print('Jumlah missing value tiap fitur: ') 
+print(cleaned_data.isnull().sum()) 
 
 print('Jumalh data duplikat: ', cleaned_data.duplicated().sum())
 
-cleaned_data = cleaned_data.drop_duplicates()
+cleaned_data = cleaned_data.drop_duplicates() 
 
-
-def boxplot(df_new, name):
+def boxplot(df_new, name): 
     sns.boxplot(df_new[name])
     plt.title("Box Plot before median imputation")
     plt.show()
@@ -71,50 +69,53 @@ def boxplot(df_new, name):
     med = np.median(df_new[name])
     for i in df_new[name]:
         if i > Upper_tail or i < Lower_tail:
-            df_new[name] = df_new[name].replace(i, med)
+                df_new[name] = df_new[name].replace(i, med)
     sns.boxplot(df_new[name])
     plt.title("Box Plot after median imputation")
-    plt.show()
+    plt.show() 
 
-
-def outlier(df, name):
+def outlier(df, name): 
     Q1 = df[name].quantile(0.25)
     Q3 = df[name].quantile(0.75)
     IQR = Q3 - Q1
-    df = df.query('(@Q1 - 1.5 * @IQR) <=' + name + '<= (@Q3 + 1.5 * @IQR)')
+    df = df.query('(@Q1 - 1.5 * @IQR) <=' + name + '<= (@Q3 + 1.5 * @IQR)') 
     return df
 
-
-numeric_col = cleaned_data.select_dtypes(include=np.number).columns.tolist()
+numeric_col = cleaned_data.select_dtypes(include=np.number).columns.tolist() 
 numeric_col = numeric_col[:-4]
+print(numeric_col) 
 
-for col in numeric_col:
-    print("Proses outlier fitur", col)
-    boxplot(cleaned_data, col)
-    cleaned_data = outlier(cleaned_data, col)
+for col in numeric_col: 
+  print("Proses outlier fitur", col) 
+  boxplot(cleaned_data, col) 
+  cleaned_data = outlier(cleaned_data, col) 
 
-df_corr = cleaned_data.corr()
+df_corr=cleaned_data.corr()
 
-cleaned_data = cleaned_data.drop(["latitude", "longitude"], axis=1)
+cleaned_data = cleaned_data.drop(["latitude", "longitude"], axis=1) 
 
-X = cleaned_data.drop('harga', axis=1)
+X = cleaned_data.drop('harga', axis = 1)
 y = cleaned_data['harga']
 
-sc = StandardScaler()
+sc = StandardScaler() 
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 1) 
 
-rfr = RandomForestRegressor(n_estimators=40)
-rfr_algo = make_pipeline(sc, rfr)
+rfr = RandomForestRegressor(n_estimators = 40) 
+rfr_algo = make_pipeline(sc, rfr) 
 
 rfr_algo.fit(X_train, y_train)
 
-rfr_pred_train = rfr_algo.predict(X_train)
-rfr_pred_test = rfr_algo.predict(X_test)
+rfr_pred_train = rfr_algo.predict(X_train) 
+rfr_pred_test = rfr_algo.predict(X_test) 
+
+print('R2 Score training is : ', r2_score(y_train, rfr_pred_train)) 
+print('R2 Score test is : ', r2_score(y_test, rfr_pred_test)) 
+print('Mean squared error is : ', math.sqrt(mean_squared_error(y_test, rfr_pred_test))) 
+
+print("KONTIL", cleaned_data["listrik"].describe())  
 
 st.title("Prediksi Harga Rumah")
-
 # Sidebar
 # Header of Specify Input Parameters
 st.sidebar.header('Specify Input Parameters')
@@ -123,8 +124,6 @@ st.sidebar.title("Input User")
 st.sidebar.write("Masukkan data rumah yang ingin diprediksi")
 
 # Input User
-
-
 def input_user():
     bedrooms = st.sidebar.slider("Jumlah Kamar Tidur", int(cleaned_data["kamar_tidur"].min(
     )), int(cleaned_data["kamar_tidur"].max()), 1)
@@ -138,14 +137,12 @@ def input_user():
         "Harga tanah (m²)", float(cleaned_data["harga"].min()), float(cleaned_data["harga"].max()), float(cleaned_data["harga"].mean()))
     parking = st.sidebar.slider("Jumlah Tempat Parkir", int(cleaned_data["tempat_parkir"].min(
     )), int(cleaned_data["tempat_parkir"].max()), 1)
-    watt = st.sidebar.slider("Daya Listrik", float(cleaned_data["listrik"].min()), float(
-        cleaned_data["listrik"].max()), float(cleaned_data["listrik"].mean()))
-
-    interior_options = ["interior_lengkap", "interior_multiple_options_available",
-                        "interior_sebagian", "interior_tak_berperabot"]
-
+    watt = st.sidebar.slider("Daya Listrik", float(cleaned_data["listrik"].min()), float(cleaned_data["listrik"].max()), float(cleaned_data["listrik"].mean())) 
+    
+    interior_options = ["interior_lengkap", "interior_multiple_options_available", "interior_sebagian", "interior_tak_berperabot"]
+    
     interior = st.sidebar.selectbox("Interior", interior_options)
-
+    
     if interior == "interior_lengkap":
         interior_lengkap = 1
         interior_multiple_options_available = 0
