@@ -195,3 +195,50 @@ st.write('---')
 st.write('---')
 st.header('Data Visualisation')
 st.write('---')
+
+# Scatter predictions vs actual
+st.subheader('Scatter plot of predictions vs actual')
+fig = plt.figure()
+plt.scatter(y_test, rfr_pred_test)
+plt.plot([0, 1], [0, 1], 'k--', lw=4)
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+st.pyplot(fig)
+
+# Histogram between prediction and actual
+st.subheader('Histogram of predictions vs actual')
+fig2 = plt.figure()
+plt.hist(y_test, bins=20, alpha=0.5, label='Actual')
+plt.hist(rfr_pred_test, bins=20, alpha=0.5, label='Predicted')
+plt.xlabel('House Price')
+plt.ylabel('Count')
+plt.legend(loc='upper right')
+st.pyplot(fig2)
+
+# Barplot between prediction and actual
+st.subheader('Barplot of predictions vs actual')
+fig3 = plt.figure()
+plt.bar(y_test, rfr_pred_test)
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+st.pyplot(fig3)
+
+#Scatter Plot
+st.subheader('Scatter Plot')
+fig5 = plt.figure()
+plt.scatter(cleaned_data['luas_tanah'], cleaned_data['harga'])
+plt.xlabel('Luas Tanah')
+plt.ylabel('Harga')
+st.pyplot(fig5)
+
+#Bar Plot
+st.subheader('Bar Plot')
+fig7 = plt.figure()
+sns.barplot(x='kamar_tidur', y='harga', data=cleaned_data)
+st.pyplot(fig7)
+
+#Bar Plot
+st.subheader('Bar Plot')
+fig8 = plt.figure()
+sns.barplot(x='kamar_mandi', y='harga', data=cleaned_data)
+st.pyplot(fig8)
