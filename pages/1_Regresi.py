@@ -20,10 +20,6 @@ import streamlit as st
 st.set_page_config(layout='wide')
 st.title('Regresi')
 
-# -*- coding: utf-8 -*-
-# import shap
-
-
 cleaned_data = pd.read_csv("cleaned_rumah.csv", index_col=[0])
 cleaned_data.head()
 
@@ -41,13 +37,12 @@ cleaned_data['harga'] = cleaned_data['harga'].apply(lambda x: x/1000000)
 cleaned_data = cleaned_data.drop(["alamat", "jenis_interior"], axis=1)
 cleaned_data.head()
 
-print("cek", cleaned_data["listrik"].unique())
-
-print('Jumlah missing value tiap fitur: ')
-print(cleaned_data.isnull().sum())
-
-print('Jumalh data duplikat: ', cleaned_data.duplicated().sum())
-
+cleaned_data = cleaned_data[cleaned_data['kamar_tidur'] > 0]
+cleaned_data = cleaned_data[cleaned_data['kamar_mandi'] > 0]
+cleaned_data = cleaned_data[cleaned_data['luas_bangunan'] >= 36]
+cleaned_data = cleaned_data[cleaned_data['luas_tanah'] >= 36]
+cleaned_data = cleaned_data[cleaned_data['listrik'] >= 450]
+cleaned_data = cleaned_data[cleaned_data['harga_tanah'] >= 1000000]
 cleaned_data = cleaned_data.drop_duplicates()
 
 
@@ -80,10 +75,7 @@ def outlier(df, name):
 numeric_col = cleaned_data.select_dtypes(include=np.number).columns.tolist()
 numeric_col = numeric_col[:-4]
 
-for col in numeric_col:
-    print("Proses outlier fitur", col)
-    boxplot(cleaned_data, col)
-    cleaned_data = outlier(cleaned_data, col)
+cleaned_data = outlier(cleaned_data, "harga")
 
 df_corr = cleaned_data.corr()
 
@@ -106,7 +98,6 @@ rfr_pred_train = rfr_algo.predict(X_train)
 rfr_pred_test = rfr_algo.predict(X_test)
 
 st.title("Prediksi Harga Rumah")
-
 # Sidebar
 # Header of Specify Input Parameters
 st.sidebar.header('Specify Input Parameters')
@@ -223,7 +214,7 @@ plt.xlabel('Actual')
 plt.ylabel('Predicted')
 st.pyplot(fig3)
 
-#Scatter Plot
+# Scatter Plot
 st.subheader('Scatter Plot')
 fig5 = plt.figure()
 plt.scatter(cleaned_data['luas_tanah'], cleaned_data['harga'])
@@ -231,14 +222,13 @@ plt.xlabel('Luas Tanah')
 plt.ylabel('Harga')
 st.pyplot(fig5)
 
-#Bar Plot
+# Bar Plot
 st.subheader('Bar Plot')
 fig7 = plt.figure()
 sns.barplot(x='kamar_tidur', y='harga', data=cleaned_data)
 st.pyplot(fig7)
 
-#Bar Plot
-st.subheader('Bar Plot')
+# Bar Plot
 fig8 = plt.figure()
 sns.barplot(x='kamar_mandi', y='harga', data=cleaned_data)
 st.pyplot(fig8)
