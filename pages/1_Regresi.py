@@ -99,7 +99,6 @@ st.title("Prediksi Harga Rumah")
 # Sidebar
 # Header of Specify Input Parameters
 st.sidebar.header('Specify Input Parameters')
-
 st.sidebar.title("Input User")
 st.sidebar.write("Masukkan data rumah yang ingin diprediksi")
 
@@ -182,7 +181,6 @@ st.write(prediction)
 
 st.write('---')
 st.header('Data Visualisation')
-st.write('---')
 
 # Scatter predictions vs actual
 st.subheader('Scatter plot of predictions vs actual')
