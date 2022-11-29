@@ -144,14 +144,14 @@ def input_user():
     bathrooms = st.sidebar.slider("Jumlah Kamar Mandi", int(cleaned_data["kamar_mandi"].min(
     )), int(cleaned_data["kamar_mandi"].max()), 1)
     sqft_living = st.sidebar.slider(
-        "Luas Tanah", float(cleaned_data["luas_tanah"].min()), float(cleaned_data["luas_tanah"].max()), float(cleaned_data["luas_tanah"].mean()))
-    sqft_lot = st.sidebar.slider("Luas Bangunan", float(cleaned_data["luas_bangunan"].min(
+        "Luas Tanah (m²)", float(cleaned_data["luas_tanah"].min()), float(cleaned_data["luas_tanah"].max()), float(cleaned_data["luas_tanah"].mean()))
+    sqft_lot = st.sidebar.slider("Luas Bangunan (m²)", float(cleaned_data["luas_bangunan"].min(
     )), float(cleaned_data["luas_bangunan"].max()), float(cleaned_data["luas_bangunan"].mean()))
     price = st.sidebar.slider(
         "Harga tanah (m²)", float(cleaned_data["harga"].min()), float(cleaned_data["harga"].max()), float(cleaned_data["harga"].mean()))
     parking = st.sidebar.slider("Jumlah Tempat Parkir", int(cleaned_data["tempat_parkir"].min(
     )), int(cleaned_data["tempat_parkir"].max()), 1)
-    watt = st.sidebar.slider("Daya Listrik", float(cleaned_data["listrik"].min()), float(
+    watt = st.sidebar.slider("Daya Listrik (watt)", float(cleaned_data["listrik"].min()), float(
         cleaned_data["listrik"].max()), float(cleaned_data["listrik"].mean()))
 
     interior_options = ["interior_lengkap", "interior_multiple_options_available",
