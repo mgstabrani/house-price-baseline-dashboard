@@ -23,8 +23,6 @@ st.title('Regresi')
 cleaned_data = pd.read_csv("cleaned_rumah.csv", index_col=[0])
 cleaned_data.head()
 
-cleaned_data.shape
-
 cleaned_data.info()
 
 cleaned_data.describe()
@@ -181,7 +179,6 @@ st.write('---')
 prediction = rfr_algo.predict(df)
 st.header('Prediction of House Price')
 st.write(prediction)
-st.write('---')
 
 st.write('---')
 st.header('Data Visualisation')
@@ -213,22 +210,3 @@ plt.bar(y_test, rfr_pred_test)
 plt.xlabel('Actual')
 plt.ylabel('Predicted')
 st.pyplot(fig3)
-
-# Scatter Plot
-st.subheader('Scatter Plot')
-fig5 = plt.figure()
-plt.scatter(cleaned_data['luas_tanah'], cleaned_data['harga'])
-plt.xlabel('Luas Tanah')
-plt.ylabel('Harga')
-st.pyplot(fig5)
-
-# Bar Plot
-st.subheader('Bar Plot')
-fig7 = plt.figure()
-sns.barplot(x='kamar_tidur', y='harga', data=cleaned_data)
-st.pyplot(fig7)
-
-# Bar Plot
-fig8 = plt.figure()
-sns.barplot(x='kamar_mandi', y='harga', data=cleaned_data)
-st.pyplot(fig8)
