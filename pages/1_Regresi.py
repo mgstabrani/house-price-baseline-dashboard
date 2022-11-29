@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 st.set_page_config(layout='wide')
-st.title('House Price Baseline')
+st.title('Regresi')
 
 # -*- coding: utf-8 -*-
 # import shap
