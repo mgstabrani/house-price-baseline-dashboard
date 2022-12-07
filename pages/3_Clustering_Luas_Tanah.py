@@ -45,6 +45,13 @@ st.header('Specified Input parameters')
 st.write(df_user)
 st.write('---')
 
+# Apply model to make predictions
+df_user.rename(columns={'luas_tanah': 'Luas Tanah', 'harga': 'Harga'}, inplace=True)
+prediction = loaded_model.predict(df_user[['Harga', 'Luas Tanah']])
+df_user['Cluster'] = prediction
+st.header('Prediction of Clustering')
+st.write(df_user[['Harga', 'Luas Tanah', 'Cluster']])
+
 st.write('---')
 st.header('Data Visualisation')
 
