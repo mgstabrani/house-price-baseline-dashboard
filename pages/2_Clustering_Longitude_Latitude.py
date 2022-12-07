@@ -17,6 +17,9 @@ df_kmeans = df_dbscan[(df_dbscan['dbscan_cluster'] == 0)].copy()
 kmeans = KMeans(n_clusters=5, random_state=42).fit(df_kmeans[["Latitude","Longitude"]])
 df_kmeans["kmeans_cluster"] = kmeans.predict(df_kmeans[["Latitude","Longitude"]])
 
+st.sidebar.header('Specify Input Parameters')
+st.sidebar.title("Input User")
+st.sidebar.write("Masukkan data rumah yang ingin diprediksi")
 longitude = st.sidebar.slider("Longitude", float(df_clean["Longitude"].min(
     )), float(df_clean["Longitude"].max()), 0.1)
 latitude = st.sidebar.slider("Latitude", float(df_clean["Latitude"].min(
