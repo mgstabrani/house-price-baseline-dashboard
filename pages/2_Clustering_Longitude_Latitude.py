@@ -17,7 +17,7 @@ module = importlib.import_module('pages.1_Regresi')
 input_user = module.input_user
 
 st.set_page_config(layout='wide')
-st.title('Clustering')
+st.title('Clustering Longitude and Latitude')
 
 df = input_user()
 
