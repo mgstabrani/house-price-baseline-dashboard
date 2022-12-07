@@ -5,4 +5,3 @@ matplotlib
 plotly
 seaborn
 streamlit
-pickle
