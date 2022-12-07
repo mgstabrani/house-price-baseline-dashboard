@@ -3,6 +3,7 @@ import importlib
 import pandas as pd
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+import pickle
 
 df = pd.read_csv("cleaned_rumah.csv", index_col=0).reset_index()
 
@@ -24,22 +25,15 @@ lower_luas_tanah = df["Luas Tanah"] < Lower_Whisker_luas_tanah
 upper_luas_tanah = df["Luas Tanah"] > Upper_Whisker_luas_tanah
 df = df[df["Luas Tanah"] < Upper_Whisker_luas_tanah]
 
-wcss_list= [] 
-
-for i in range(1, 11):
-    kmeans = KMeans(n_clusters=i, init='k-means++', random_state= 42)
-    kmeans.fit(df[['Luas Tanah','Harga']])
-    wcss_list.append(kmeans.inertia_)
-
-kmeans = KMeans(n_clusters=5, init='k-means++', random_state= 42)
-y_predict= kmeans.fit_predict(df[['Luas Tanah','Harga']])
-df['cluster'] = y_predict
+# load the model from disk
+loaded_model = pickle.load(open('clustering-luas-tanah.pkl', 'rb'))
+result = loaded_model.predict(df[['Luas Tanah', 'Harga',]])
+df['cluster'] = result
 df1 = df[df['cluster'] == 0]
 df2 = df[df['cluster'] == 1]
 df3 = df[df['cluster'] == 2]
 df4 = df[df['cluster'] == 3]
 df5 = df[df['cluster'] == 4]
-
 
 st.set_page_config(layout='wide')
 st.title('Clustering Luas Tanah')
@@ -62,7 +56,7 @@ plt.scatter(df2['Luas Tanah'], df2.Harga, color = 'red', label = 'Cluster 2')
 plt.scatter(df3['Luas Tanah'], df3.Harga, color = 'black', label = 'Cluster 3')
 plt.scatter(df4['Luas Tanah'], df4.Harga, color = 'blue', label = 'Cluster 4')
 plt.scatter(df5['Luas Tanah'], df5.Harga, color = 'purple', label = 'Cluster 5')
-plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s = 300, c = 'yellow', label = 'Centroid')
+plt.scatter(loaded_model.cluster_centers_[:, 0], loaded_model.cluster_centers_[:, 1], s = 300, c = 'yellow', label = 'Centroid')
 plt.xlabel('Luas Tanah')
 plt.ylabel("Harga")
 plt.legend()
