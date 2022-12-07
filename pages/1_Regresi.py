@@ -216,8 +216,8 @@ def input_user():
     region_4 = "Kopo, Margaasih, Raya, Soreang, Taman, Indah, Margahayu, Cibaduyut, Rahayu, Kopomekar"
     region_5 = "Buahbatu, Bojongsoang, Batu, Buah, Ciwastra, Hatta, Soekarno, Margasari, Ancol, Dayeuh"
 
-    region = ["Region 1" + "(" + region_1 + ")", "Region 2" +
-              "(" + region_2 + ")", "Region 3" + "(" + region_3 + ")", "Region 4" + "(" + region_4 + ")", "Region 5" + "(" + region_5 + ")"]
+    region = ["Region 1 " + "(" + region_1 + ")", "Region 2 " +
+              "(" + region_2 + ")", "Region 3 " + "(" + region_3 + ")", "Region 4 " + "(" + region_4 + ")", "Region 5 " + "(" + region_5 + ")"]
 
     cluster = st.sidebar.selectbox("Region", region) 
 
