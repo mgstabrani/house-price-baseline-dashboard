@@ -7,66 +7,65 @@ Original file is located at
     https://colab.research.google.com/drive/1xGzRmv0yFtNR9EEfn0V_PB4Q0CCmki1z
 """
 
-import numpy as np
-import pandas as pd
+import numpy as np 
+import pandas as pd 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-# import shap
+# import shap 
 import streamlit as st
 import plotly.graph_objects as go
+import re 
 
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.model_selection import train_test_split 
+from sklearn.preprocessing import StandardScaler 
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder 
 
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.pipeline import make_pipeline
-from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import make_pipeline 
+from sklearn.linear_model import LinearRegression 
 
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis 
+from sklearn.decomposition import PCA 
 
 import math
-from sklearn.metrics import r2_score, mean_squared_error
-from sklearn.pipeline import Pipeline
+from sklearn.metrics import r2_score, mean_squared_error 
+from sklearn.pipeline import Pipeline 
 
-cleaned_data = pd.read_csv("cleaned_rumah.csv", index_col=[0])
+cleaned_data = pd.read_csv("cleaned_rumah.csv", index_col=[0]) 
 cleaned_data.head()
-
-cleaned_data.shape
 
 cleaned_data.info()
 
-cleaned_data.describe()
+cleaned_data.describe() 
 
-cleaned_data.columns = cleaned_data.columns.str.lower().str.replace(" ", "_")
-cleaned_data.rename(columns={'harga_per_m^2': 'harga_tanah'}, inplace=True)
+cleaned_data.columns = cleaned_data.columns.str.lower().str.replace(" ", "_") 
+cleaned_data.rename(columns={'harga_per_m^2':'harga_tanah'}, inplace=True)
 
-cleaned_data['harga'] = cleaned_data['harga'].apply(lambda x: x/1000000)
-# cleaned_data['harga_tanah'] = cleaned_data['harga_tanah'].apply(lambda x: x/1000)
+cleaned_data['harga'] = cleaned_data['harga'].apply(lambda x: x/1000000) 
 
-cleaned_data = cleaned_data.drop(["alamat", "jenis_interior"], axis=1)
-cleaned_data.head()
+cleaned_data = cleaned_data[cleaned_data['kamar_tidur'] > 0] 
+cleaned_data = cleaned_data[cleaned_data['kamar_mandi'] > 0] 
+cleaned_data = cleaned_data[cleaned_data['luas_bangunan'] >= 36] 
+cleaned_data = cleaned_data[cleaned_data['luas_tanah'] >= 36] 
+cleaned_data = cleaned_data[cleaned_data['listrik'] >= 450] 
+cleaned_data = cleaned_data[cleaned_data['harga_tanah'] >= 1000000] 
 
-cleaned_data = cleaned_data[cleaned_data['kamar_tidur'] > 0]
-cleaned_data = cleaned_data[cleaned_data['kamar_mandi'] > 0]
-cleaned_data = cleaned_data[cleaned_data['luas_bangunan'] >= 36]
-cleaned_data = cleaned_data[cleaned_data['luas_tanah'] >= 36]
-cleaned_data = cleaned_data[cleaned_data['listrik'] >= 450]
-cleaned_data = cleaned_data[cleaned_data['harga_tanah'] >= 1000000]
+# cleaned_data['harga_tanah'] = cleaned_data['harga_tanah'].apply(lambda x: x/1000) 
 
-print("cek", cleaned_data["harga_tanah"].describe())
+cleaned_data = cleaned_data.drop(["alamat", "jenis_interior"], axis=1) 
+cleaned_data.head() 
 
-print('Jumlah missing value tiap fitur: ')
-print(cleaned_data.isnull().sum())
+print("cek", cleaned_data["harga_tanah"].describe()) 
+
+print('Jumlah missing value tiap fitur: ') 
+print(cleaned_data.isnull().sum()) 
 
 print('Jumalh data duplikat: ', cleaned_data.duplicated().sum())
 
-cleaned_data = cleaned_data.drop_duplicates()
+cleaned_data = cleaned_data.drop_duplicates() 
 
-
-def boxplot(df_new, name):
+def boxplot(df_new, name): 
     sns.boxplot(df_new[name])
     plt.title("Box Plot before median imputation")
     plt.show()
@@ -78,87 +77,118 @@ def boxplot(df_new, name):
     med = np.median(df_new[name])
     for i in df_new[name]:
         if i > Upper_tail or i < Lower_tail:
-            df_new[name] = df_new[name].replace(i, med)
+                df_new[name] = df_new[name].replace(i, med)
     sns.boxplot(df_new[name])
     plt.title("Box Plot after median imputation")
-    plt.show()
+    plt.show() 
 
-
-def outlier(df, name):
+def outlier(df, name): 
     Q1 = df[name].quantile(0.25)
     Q3 = df[name].quantile(0.75)
     IQR = Q3 - Q1
-    df = df.query('(@Q1 - 1.5 * @IQR) <=' + name + '<= (@Q3 + 1.5 * @IQR)')
+    df = df.query('(@Q1 - 1.5 * @IQR) <=' + name + '<= (@Q3 + 1.5 * @IQR)') 
     return df
 
-
-numeric_col = cleaned_data.select_dtypes(include=np.number).columns.tolist()
+numeric_col = cleaned_data.select_dtypes(include=np.number).columns.tolist() 
 numeric_col = numeric_col[:-4]
-print(numeric_col)
+print(numeric_col) 
 
+# for col in numeric_col: 
+#   print("Proses outlier fitur", col) 
+#   boxplot(cleaned_data, col) 
+#   cleaned_data = outlier(cleaned_data, col) 
 
-cleaned_data = outlier(cleaned_data, "harga")
+cleaned_data = outlier(cleaned_data, "harga") 
 
-df_corr = cleaned_data.corr()
+df_corr=cleaned_data.corr()
+# f,ax=plt.subplots(figsize=(12,7))
+# sns.heatmap(df_corr,cmap='viridis',annot=True)
+# plt.title("Correlation between features",weight='bold',fontsize=18)
+# plt.show() 
 
-cleaned_data = cleaned_data.drop(["latitude", "longitude"], axis=1)
+import pickle 
 
-X = cleaned_data.drop('harga', axis=1)
+with open("model.pkl", "rb") as f:
+    model_kmeans = pickle.load(f) 
+
+cleaned_data["kmeans_cluster"] = model_kmeans.predict(cleaned_data[["latitude","longitude"]]) 
+
+cleaned_data = cleaned_data.drop(["latitude", "longitude"], axis=1) 
+
+X = cleaned_data.drop('harga', axis = 1)
 y = cleaned_data['harga']
 
-sc = StandardScaler()
-# X = sc.fit_transform(X)
+sc = StandardScaler() 
+# X = sc.fit_transform(X) 
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 1) 
 
-rfr = RandomForestRegressor(n_estimators=40)
-rfr_algo = make_pipeline(sc, rfr)
+# acc_list_rf_PCA = [] 
+# count = 0 
+# for each in range (2,21):
+#     rf_PCA = RandomForestRegressor(n_estimators = 40) 
+#     pca = PCA(n_components= each,whiten = True) 
+#     X_pca_train = pca.fit_transform(X_train)
+#     X_pca_test = pca.transform(X_test)
+#     rf_PCA.fit(X_pca_train,y_train) 
+#     if sum(pca.explained_variance_ratio_) >= 1: 
+#       break 
+#     acc_list_rf_PCA.append(rf_PCA.score(X_pca_train,y_train))
+#     print("PCA features value: {}\t\tPCA sum Variance Ratio: {}".format(each,sum(pca.explained_variance_ratio_))) 
+#     count += 1 
+    
+# plt.plot(range(2,count+2),acc_list_rf_PCA,color="green",label="train")
+# plt.xlabel("PCA Scores")
+# plt.ylabel("train accuracy")
+# plt.legend()
+# plt.show()
 
-rfr_algo.fit(X_train, y_train)
+# pca = PCA(n_components=10,whiten = True) 
+# X_pca_train = pca.fit_transform(X_train, y_train) 
+# X_pca_test = pca.transform(X_test) 
 
-rfr_pred_train = rfr_algo.predict(X_train)
-rfr_pred_test = rfr_algo.predict(X_test)
+rfr = RandomForestRegressor(n_estimators = 40) 
+rfr_algo = make_pipeline(sc, rfr) 
 
-print('R2 Score training is : ', r2_score(y_train, rfr_pred_train))
-print('R2 Score test is : ', r2_score(y_test, rfr_pred_test))
-print('Mean squared error is : ', math.sqrt(
-    mean_squared_error(y_test, rfr_pred_test)))
+rfr_algo.fit(X_train, y_train) 
 
-print("KONTIL", cleaned_data["listrik"].describe())
+rfr_pred_train = rfr_algo.predict(X_train) 
+rfr_pred_test = rfr_algo.predict(X_test) 
+
+print('R2 Score training is : ', r2_score(y_train, rfr_pred_train)) 
+print('R2 Score test is : ', r2_score(y_test, rfr_pred_test)) 
+print('Mean squared error is : ', math.sqrt(mean_squared_error(y_test, rfr_pred_test))) 
+
+st.set_page_config(
+    layout="wide"
+)
 
 st.title("Prediksi Harga Rumah")
 # Sidebar
 # Header of Specify Input Parameters
-st.sidebar.header('Specify Input Parameters')
-
 st.sidebar.title("Input User")
 st.sidebar.write("Masukkan data rumah yang ingin diprediksi")
 
 # Input User
-
-
 def input_user():
     bedrooms = st.sidebar.slider("Jumlah Kamar Tidur", int(cleaned_data["kamar_tidur"].min(
     )), int(cleaned_data["kamar_tidur"].max()), 1)
     bathrooms = st.sidebar.slider("Jumlah Kamar Mandi", int(cleaned_data["kamar_mandi"].min(
     )), int(cleaned_data["kamar_mandi"].max()), 1)
     sqft_living = st.sidebar.slider(
-        "Luas Tanah (m²)", float(cleaned_data["luas_tanah"].min()), float(cleaned_data["luas_tanah"].max()), float(cleaned_data["luas_tanah"].mean()))
-    sqft_lot = st.sidebar.slider("Luas Bangunan (m²)", float(cleaned_data["luas_bangunan"].min(
+        "Luas Tanah", float(cleaned_data["luas_tanah"].min()), float(cleaned_data["luas_tanah"].max()), float(cleaned_data["luas_tanah"].mean()))
+    sqft_lot = st.sidebar.slider("Luas Bangunan", float(cleaned_data["luas_bangunan"].min(
     )), float(cleaned_data["luas_bangunan"].max()), float(cleaned_data["luas_bangunan"].mean()))
     price = st.sidebar.slider(
         "Harga tanah (m²)", float(cleaned_data["harga"].min()), float(cleaned_data["harga"].max()), float(cleaned_data["harga"].mean()))
     parking = st.sidebar.slider("Jumlah Tempat Parkir", int(cleaned_data["tempat_parkir"].min(
     )), int(cleaned_data["tempat_parkir"].max()), 1)
-    watt = st.sidebar.slider("Daya Listrik (watt)", float(cleaned_data["listrik"].min()), float(
-        cleaned_data["listrik"].max()), float(cleaned_data["listrik"].mean()))
-
-    interior_options = ["interior_lengkap", "interior_multiple_options_available",
-                        "interior_sebagian", "interior_tak_berperabot"]
-
+    watt = st.sidebar.slider("Daya Listrik", float(cleaned_data["listrik"].min()), float(cleaned_data["listrik"].max()), float(cleaned_data["listrik"].mean())) 
+    
+    interior_options = ["interior_lengkap", "interior_multiple_options_available", "interior_sebagian", "interior_tak_berperabot"]
+    
     interior = st.sidebar.selectbox("Interior", interior_options)
-
+    
     if interior == "interior_lengkap":
         interior_lengkap = 1
         interior_multiple_options_available = 0
@@ -178,20 +208,43 @@ def input_user():
         interior_lengkap = 0
         interior_multiple_options_available = 0
         interior_sebagian = 0
-        interior_tak_berperabot = 1
+        interior_tak_berperabot = 1 
+
+    region_1 = "Antapani , Arcamanik, Cileunyi, Gedebage, Cisaranten, Ujung, Berung, Kulon, Jalan, Cibiru"
+    region_2 = "Dago, Setra, Cigadung, Setiabudi, Duta, Pasteur, Geger, Kalong, Raya, Coblong"
+    region_3 = "Mekar, Wangi, Turangga, Batununggal, Cikutra, Timur, Utara, Riau, Kidul, Regol"
+    region_4 = "Kopo, Margaasih, Raya, Soreang, Taman, Indah, Margahayu, Cibaduyut, Rahayu, Kopomekar"
+    region_5 = "Buahbatu, Bojongsoang, Batu, Buah, Ciwastra, Hatta, Soekarno, Margasari, Ancol, Dayeuh"
+
+    region = ["Region 1" + "(" + region_1 + ")", "Region 2" +
+              "(" + region_2 + ")", "Region 3" + "(" + region_3 + ")", "Region 4" + "(" + region_4 + ")", "Region 5" + "(" + region_5 + ")"]
+
+    cluster = st.sidebar.selectbox("Region", region) 
+
+    if cluster == "Region 1":
+        kmeans_cluster = 0 
+    elif cluster == "Region 2":
+        kmeans_cluster = 1 
+    elif cluster == "Region 3":
+        kmeans_cluster = 2 
+    elif cluster == "Region 4":
+        kmeans_cluster = 3 
+    else:
+        kmeans_cluster = 4 
 
     data = {
-        'bedrooms': bedrooms,
-        'bathrooms': bathrooms,
-        'sqft_living': sqft_living,
-        'sqft_lot': sqft_lot,
-        'price': price,
-        'parking': parking,
-        'watt': watt,
-        'interior_lengkap': interior_lengkap,
-        'interior_multiple_options_available': interior_multiple_options_available,
-        'interior_sebagian': interior_sebagian,
-        'interior_tak_berperabot': interior_tak_berperabot
+        'Kamar Tidur': bedrooms,
+        'Kamar Mandi': bathrooms,
+        'Luas Tanah': sqft_living,
+        'Luas Bangunan': sqft_lot,
+        'Harga Tanah': price,
+        'Tempat Parkir': parking,
+        'Daya Listrik': watt,
+        'Interior Lengkap': interior_lengkap,
+        'Interior Multiple Options': interior_multiple_options_available,
+        'Interior Sebagian': interior_sebagian,
+        'Interior Tak Berperabot': interior_tak_berperabot, 
+        'Region': kmeans_cluster 
     }
 
     features = pd.DataFrame(data, index=[0])
@@ -203,63 +256,59 @@ df = input_user()
 # Main Panel
 
 # Print specified input parameters
-st.header('Specified Input parameters')
-st.write(df)
+print(df.index)
+st.header('Specified Input parameters') 
+st.write(df[["Kamar Tidur", "Kamar Mandi", "Luas Tanah",
+         "Luas Bangunan", "Harga Tanah", "Tempat Parkir"]])
+st.write(df[["Daya Listrik", "Interior Lengkap", "Interior Multiple Options",
+         "Interior Sebagian", "Interior Tak Berperabot", "Region"]])
 st.write('---')
 
 # Apply model to make predictions
 prediction = rfr_algo.predict(df)
+
+def transform_to_rupiah_format(value):
+    str_value = str(value)
+    separate_decimal = str_value.split(".")
+    after_decimal = separate_decimal[0]
+
+    reverse = after_decimal[::-1]
+    temp_reverse_value = ""
+
+    for index, val in enumerate(reverse):
+        if (index + 1) % 3 == 0 and index + 1 != len(reverse):
+            temp_reverse_value = temp_reverse_value + val + "."
+        else:
+            temp_reverse_value = temp_reverse_value + val
+
+    temp_result = temp_reverse_value[::-1]
+
+    return "Rp" + temp_result
+
+print(transform_to_rupiah_format(prediction[0] * 1000000))
+
 st.header('Prediction of House Price')
-st.write(prediction)
+st.subheader(transform_to_rupiah_format(prediction[0] * 1000000))
 st.write('---')
 
-st.write('---')
 st.header('Data Visualisation')
-st.write('---')
 
 # Scatter predictions vs actual
 st.subheader('Scatter plot of predictions vs actual')
-fig = plt.figure()
+fig = plt.figure(figsize=(8, 6))
+
 plt.scatter(y_test, rfr_pred_test)
 plt.plot([0, 1], [0, 1], 'k--', lw=4)
 plt.xlabel('Actual')
 plt.ylabel('Predicted')
-st.pyplot(fig)
+st.pyplot(fig) 
 
 # Histogram between prediction and actual
 st.subheader('Histogram of predictions vs actual')
-fig2 = plt.figure()
+fig2 = plt.figure(figsize=(8, 6))
 plt.hist(y_test, bins=20, alpha=0.5, label='Actual')
 plt.hist(rfr_pred_test, bins=20, alpha=0.5, label='Predicted')
 plt.xlabel('House Price')
 plt.ylabel('Count')
 plt.legend(loc='upper right')
 st.pyplot(fig2)
-
-# Barplot between prediction and actual
-st.subheader('Barplot of predictions vs actual')
-fig3 = plt.figure()
-plt.bar(y_test, rfr_pred_test)
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-st.pyplot(fig3)
-
-# Scatter Plot
-st.subheader('Scatter Plot')
-fig5 = plt.figure()
-plt.scatter(cleaned_data['luas_tanah'], cleaned_data['harga'])
-plt.xlabel('Luas Tanah')
-plt.ylabel('Harga')
-st.pyplot(fig5)
-
-# Bar Plot
-st.subheader('Bar Plot')
-fig7 = plt.figure()
-sns.barplot(x='kamar_tidur', y='harga', data=cleaned_data)
-st.pyplot(fig7)
-
-# Bar Plot
-
-fig8 = plt.figure()
-sns.barplot(x='kamar_mandi', y='harga', data=cleaned_data)
-st.pyplot(fig8)
