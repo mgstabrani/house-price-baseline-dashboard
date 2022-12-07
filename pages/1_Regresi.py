@@ -258,10 +258,7 @@ df = input_user()
 # Print specified input parameters
 print(df.index)
 st.header('Specified Input parameters') 
-st.write(df[["Kamar Tidur", "Kamar Mandi", "Luas Tanah",
-         "Luas Bangunan", "Harga Tanah", "Tempat Parkir"]])
-st.write(df[["Daya Listrik", "Interior Lengkap", "Interior Multiple Options",
-         "Interior Sebagian", "Interior Tak Berperabot", "Region"]])
+st.write(df)
 st.write('---')
 
 # Apply model to make predictions
