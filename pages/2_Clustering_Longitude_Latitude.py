@@ -13,20 +13,36 @@ df_dbscan = df_dbscan[(df_dbscan.Latitude < -4) & (df_dbscan.Longitude > 80)]
 db =  DBSCAN(eps=0.05, min_samples=10)
 df_dbscan["dbscan_cluster"] = db.fit_predict(df_dbscan[["Latitude","Longitude"]])
 
-module = importlib.import_module('pages.1_Regresi')
-input_user = module.input_user
+df_kmeans = df_dbscan[(df_dbscan['dbscan_cluster'] == 0)].copy()
+kmeans = KMeans(n_clusters=5, random_state=42).fit(df_kmeans[["Latitude","Longitude"]])
+df_kmeans["kmeans_cluster"] = kmeans.predict(df_kmeans[["Latitude","Longitude"]])
 
-st.set_page_config(layout='wide')
+longitude = st.sidebar.slider("Longitude", float(df_clean["Longitude"].min(
+    )), float(df_clean["Longitude"].max()), 0.1)
+latitude = st.sidebar.slider("Latitude", float(df_clean["Latitude"].min(
+    )), float(df_clean["Latitude"].max()), 0.1)
+
 st.title('Clustering Longitude and Latitude')
-
-df = input_user()
 
 # Print specified input parameters
 st.header('Specified Input parameters')
-st.write(df)
+df_user = pd.DataFrame({
+    'Longitude': longitude,
+    'Latitude': latitude
+}, index=[0])
+st.write(df_user)
 st.write('---')
 
+# Apply model to make predictions
+predictionKmeans = kmeans.predict(df_user)
+predictionDBSCAN = db.fit_predict(df_user)
+st.header('Prediction of House Cluster')
+st.write(pd.DataFrame({
+    'KMeans': predictionKmeans,
+    'DBSCAN': predictionDBSCAN
+}))
 st.write('---')
+
 st.header('Data Visualisation')
 
 # Scatter plot of DBSCAN clustering
@@ -36,9 +52,6 @@ sns.scatterplot(data=df_dbscan, x="Latitude", y="Longitude", hue="dbscan_cluster
 st.pyplot(fig)
 
 # Scatter plot of KMeans clustering
-df_kmeans = df_dbscan[(df_dbscan['dbscan_cluster'] == 0)].copy()
-kmeans = KMeans(n_clusters=5, random_state=42).fit(df_kmeans[["Latitude","Longitude"]])
-df_kmeans["kmeans_cluster"] = kmeans.predict(df_kmeans[["Latitude","Longitude"]])
 st.subheader('Scatter plot of KMeans clustering')
 fig1 = plt.figure()
 sns.scatterplot(data=df_kmeans, x="Latitude", y="Longitude", hue="kmeans_cluster", palette="deep")
