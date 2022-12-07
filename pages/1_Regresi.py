@@ -108,7 +108,7 @@ df_corr=cleaned_data.corr()
 
 import pickle 
 
-with open("../model.pkl", "rb") as f:
+with open("model.pkl", "rb") as f:
     model_kmeans = pickle.load(f) 
 
 cleaned_data["kmeans_cluster"] = model_kmeans.predict(cleaned_data[["latitude","longitude"]]) 
