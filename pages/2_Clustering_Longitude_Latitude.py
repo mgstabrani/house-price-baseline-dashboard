@@ -41,8 +41,7 @@ predictionKmeans = kmeans.predict(df_user)
 predictionDBSCAN = db.fit_predict(df_user)
 st.header('Prediction of House Cluster')
 st.write(pd.DataFrame({
-    'KMeans': predictionKmeans,
-    'DBSCAN': predictionDBSCAN
+    'KMeans': predictionKmeans
 }))
 st.write('---')
 
